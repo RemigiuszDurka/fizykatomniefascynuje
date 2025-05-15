@@ -4,17 +4,26 @@ Poniżej znajdują się linki do stron projektów oraz notatników Colab i repoz
 
 ## Projekty uczniów
 
-Jakub: **[strona projektu o 2D oscylatorze harmonicznym](https://ihordai.github.io/Krzywa-L/)**  
+### Jakub
+
+**[strona projektu o 2D oscylatorze harmonicznym](https://ihordai.github.io/Krzywa-L/)**  
   → pliki źródłowe: [Colab](https://drive.google.com/drive/folders/1VGZuU4nMb7qu2rW-6Hrk0bXnQIpvAm-9?usp=sharing)  
   → pliki źródłowe: [GitHub](https://github.com/IhordaI/Krzywa-L)
 
-Alicja: **strona projektu o problemie trzech ciał 1](https://remigiuszdurka.github.io/fizykatomniefascynuje/fizyka-Alicja/)**  
+### Alicja
+
+**strona projektu o problemie trzech ciał 1](https://remigiuszdurka.github.io/fizykatomniefascynuje/fizyka-Alicja/2D.html)**  
   → pliki źródłowe: [Colab](https://drive.google.com/drive/folders/1MIlMxHNB9ppnu4uvH_POYsXGEY2IOrG8?usp=sharing)
 
-Antoni: **[strona 1 projektu o prawach Keplera](https://remigiuszdurka.github.io/fizykatomniefascynuje/fizyka-Antoni/jedno.html)**  + **[strona 2 projektu o prawach Keplera](https://remigiuszdurka.github.io/fizykatomniefascynuje/fizyka-Antoni/jedno.html)**
+### Antoni
+
+**[strona 1 projektu o prawach Keplera](https://remigiuszdurka.github.io/fizykatomniefascynuje/fizyka-Antoni/jedno.html)**\
+**[strona 2 projektu o prawach Keplera](https://remigiuszdurka.github.io/fizykatomniefascynuje/fizyka-Antoni/losowe.html)**
   → [Colab](https://drive.google.com/drive/folders/1VQp6FaMhu_pVxw3nD4XQwcYCEWKDZBHx?usp=sharing)
 
-Antonina: **[multiportal o falach](https://remigiuszdurka.github.io/fizykatomniefascynuje/fizyka-Antonina/index.html)**  
+### Antonina
+
+**[multiportal o falach](https://remigiuszdurka.github.io/fizykatomniefascynuje/fizyka-Antonina/index.html)**  
   → pliki źródłowe: [Colab](https://drive.google.com/drive/folders/1pwzM2zdr3cLh_5CtNwn8G-rcSCTSiZbZ?usp=sharing)
 
 ---
