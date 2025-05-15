@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Animacja Fali 3D - Fizyczna Paleta</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #1a1a1a; }
+        canvas { width: 100%; height: 100vh; }
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        label { display: block; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <label>Wave Speed: <input type="range" id="waveSpeed" min="0.01" max="0.2" step="0.01" value="0.1"></label>
+        <div id="source-controls"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // Scena, kamera i renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x1a1a1a);
+        document.body.appendChild(renderer.domElement);
+
+        // Kontrola myszką
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.screenSpacePanning = false;
+        controls.minDistance = 20;
+        controls.maxDistance = 200;
+
+        // Siatka fali (100x100 dla płynności)
+        const geometry = new THREE.PlaneGeometry(80, 80, 100, 100);
+        const material = new THREE.MeshPhongMaterial({
+            vertexColors: true,
+            side: THREE.DoubleSide,
+            shininess: 100,
+            specular: 0xffffff,
+            transparent: true,
+            opacity: 0.9
+        });
+        const wave = new THREE.Mesh(geometry, material);
+        wave.rotation.x = -Math.PI / 2;
+        scene.add(wave);
+
+        // Kolory wierzchołków
+        const colors = new Float32Array(geometry.attributes.position.count * 3);
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        // Wygładzony profil startowy
+        const vertices = geometry.attributes.position.array;
+        for (let i = 0; i < vertices.length; i += 3) {
+            const x = vertices[i];
+            const y = vertices[i + 1];
+            vertices[i + 2] = Math.sin(Math.sqrt(x * x + y * y) * 0.3) * 0.5;
+        }
+        geometry.attributes.position.needsUpdate = true;
+
+        // Osie z grotami (długość 50)
+        const arrowMaterialX = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+        const arrowMaterialY = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const arrowMaterialZ = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+        const arrowGeometry = new THREE.ConeGeometry(1, 3, 8);
+
+        // Oś X
+        const xLineGeom = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(-50, 0, 0),
+            new THREE.Vector3(50, 0, 0)
+        ]);
+        const xLine = new THREE.Line(xLineGeom, arrowMaterialX);
+        scene.add(xLine);
+        const xArrowPos = new THREE.Mesh(arrowGeometry, arrowMaterialX);
+        xArrowPos.position.set(50, 0, 0);
+        xArrowPos.rotation.z = -Math.PI / 2;
+        scene.add(xArrowPos);
+
+        // Oś Y
+        const yLineGeom = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(0, 0, -50),
+            new THREE.Vector3(0, 0, 50)
+        ]);
+        const yLine = new THREE.Line(yLineGeom, arrowMaterialY);
+        scene.add(yLine);
+        const yArrowPos = new THREE.Mesh(arrowGeometry, arrowMaterialY);
+        yArrowPos.position.set(0, 0, 50);
+        yArrowPos.rotation.x = Math.PI / 2;
+        scene.add(yArrowPos);
+
+        // Oś Z
+        const zLineGeom = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(0, -50, 0),
+            new THREE.Vector3(0, 50, 0)
+        ]);
+        const zLine = new THREE.Line(zLineGeom, arrowMaterialZ);
+        scene.add(zLine);
+        const zArrowPos = new THREE.Mesh(arrowGeometry, arrowMaterialZ);
+        zArrowPos.position.set(0, 50, 0);
+        scene.add(zArrowPos);
+
+        // Znaczniki skali na osiach (bez tła)
+        function addAxisLabels(axis, max, color) {
+            for (let i = -max; i <= max; i += 10) {
+                if (i === 0) continue;
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 64;
+                canvas.height = 64;
+                context.font = '20px Arial';
+                context.fillStyle = color;
+                context.fillText(i, 10, 40);
+                const texture = new THREE.CanvasTexture(canvas);
+                texture.transparent = true;
+                const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+                const sprite = new THREE.Sprite(spriteMaterial);
+                sprite.scale.set(3, 3, 1);
+                if (axis === 'x') sprite.position.set(i, 1, 0);
+                if (axis === 'y') sprite.position.set(0, 1, i);
+                if (axis === 'z') sprite.position.set(0, i, 0);
+                scene.add(sprite);
+            }
+        }
+        addAxisLabels('x', 50, '#ff0000');
+        addAxisLabels('y', 50, '#00ff00');
+        addAxisLabels('z', 50, '#0000ff');
+
+        // Etykiety osi (Sprite)
+        function createLabel(text, color) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 64;
+            canvas.height = 64;
+            context.font = '24px Arial';
+            context.fillStyle = color;
+            context.fillText(text, 10, 40);
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.transparent = true;
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+            return new THREE.Sprite(spriteMaterial);
+        }
+
+        const xLabel = createLabel('X', '#ff0000');
+        xLabel.position.set(48, 2, 0);
+        xLabel.scale.set(5, 5, 1);
+        scene.add(xLabel);
+
+        const yLabel = createLabel('Y', '#00ff00');
+        yLabel.position.set(0, 2, 48);
+        yLabel.scale.set(5, 5, 1);
+        scene.add(yLabel);
+
+        const zLabel = createLabel('Z', '#0000ff');
+        zLabel.position.set(0, 48, 0);
+        zLabel.scale.set(5, 5, 1);
+        scene.add(zLabel);
+
+        // Siatka odniesienia
+        const gridHelper = new THREE.GridHelper(80, 8, 0x444444, 0x444444);
+        gridHelper.position.y = -0.1;
+        scene.add(gridHelper);
+
+        // Światło ambientowe
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+        scene.add(ambientLight);
+
+        // Pozycja kamery
+        camera.position.set(80, 80, 80);
+        camera.lookAt(0, 0, 0);
+
+        // Suwak prędkości
+        const waveSpeed = document.getElementById('waveSpeed');
+
+        // Kontener na suwaki źródeł
+        const sourceControls = document.getElementById('source-controls');
+        let sources = [];
+
+        // Funkcja dodawania źródła i suwaków
+        function addSource(x, y) {
+            const id = sources.length;
+            const source = { x, y, amplitude: 2, phase: 0, time: 0 };
+            sources.push(source);
+
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <h4>Źródło ${id + 1}</h4>
+                <label>X: <input type="range" id="source${id}X" min="-40" max="40" value="${x.toFixed(1)}"></label>
+                <label>Y: <input type="range" id="source${id}Y" min="-40" max="40" value="${y.toFixed(1)}"></label>
+                <label>Amplitude: <input type="range" id="source${id}Amp" min="0" max="10" value="2"></label>
+                <label>Phase: <input type="range" id="source${id}Phase" min="-5" max="5" value="0"></label>
+            `;
+            sourceControls.appendChild(div);
+        }
+
+        // Precyzyjne dodawanie źródła kliknięciem
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        renderer.domElement.addEventListener('mousedown', (event) => {
+            event.preventDefault(); // Zapobiega interferencji z OrbitControls
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(wave);
+            if (intersects.length > 0) {
+                const point = intersects[0].point;
+                // Przeliczenie na lokalne współrzędne fali
+                const localPoint = wave.worldToLocal(point.clone());
+                addSource(localPoint.x, localPoint.y); // X i Y w lokalnym układzie fali
+            }
+        });
+
+        // Animacja
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Aktualizacja źródeł z suwaków
+            sources.forEach((source, id) => {
+                const xInput = document.getElementById(`source${id}X`);
+                const yInput = document.getElementById(`source${id}Y`);
+                const ampInput = document.getElementById(`source${id}Amp`);
+                const phaseInput = document.getElementById(`source${id}Phase`);
+                if (xInput) source.x = parseFloat(xInput.value);
+                if (yInput) source.y = parseFloat(yInput.value);
+                if (ampInput) source.amplitude = parseFloat(ampInput.value);
+                if (phaseInput) source.phase = parseFloat(phaseInput.value);
+            });
+
+            const speed = parseFloat(waveSpeed.value);
+
+            // Aktualizacja fali i kolorów
+            const vertices = wave.geometry.attributes.position.array;
+            const colorArray = wave.geometry.attributes.color.array;
+            for (let i = 0; i < vertices.length; i += 3) {
+                const x = vertices[i];
+                const y = vertices[i + 1];
+                let z = 0;
+
+                for (const source of sources) {
+                    const dx = x - source.x;
+                    const dy = y - source.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const waveHeight = source.amplitude * Math.sin(distance * 0.5 - source.time + source.phase) * Math.exp(-distance * 0.1);
+                    z += waveHeight;
+                }
+                vertices[i + 2] = z;
+
+                // Fizyczna paleta: głęboki niebieski -> turkus -> zielony -> pomarańczowy -> czerwony
+                const normZ = Math.max(-1, Math.min(1, z / 5));
+                if (normZ < -0.5) {
+                    colorArray[i] = 0;                    // R: głęboki niebieski
+                    colorArray[i + 1] = 0.2;              // G: minimalny
+                    colorArray[i + 2] = 0.8 + normZ * 0.6; // B: od 0.8 do 0.2
+                } else if (normZ < 0) {
+                    colorArray[i] = 0;                    // R: turkus
+                    colorArray[i + 1] = 0.5 + normZ * 1; // G: od 0.5 do 0
+                    colorArray[i + 2] = 1;                // B: pełny
+                } else if (normZ < 0.5) {
+                    colorArray[i] = normZ * 2;            // R: od 0 do 1 (zielony -> pomarańczowy)
+                    colorArray[i + 1] = 1;                // G: pełny
+                    colorArray[i + 2] = 0;                // B: zero
+                } else {
+                    colorArray[i] = 1;                    // R: czerwony
+                    colorArray[i + 1] = 1 - (normZ - 0.5) * 2; // G: od 1 do 0
+                    colorArray[i + 2] = 0;                // B: zero
+                }
+            }
+            wave.geometry.attributes.position.needsUpdate = true;
+            wave.geometry.attributes.color.needsUpdate = true;
+
+            sources.forEach(source => source.time += speed);
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Responsywność
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>

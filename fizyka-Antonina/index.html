@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fizyka to mnie fascynuje - Antonina Jarecka</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #4b6cb7);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        header {
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+            50% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.6); }
+            100% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 300;
+            margin-top: 0;
+            opacity: 0.9;
+        }
+
+        .projects {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .project-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Tematyczne tła kart */
+        .lorentz-card {
+            background: rgba(100, 181, 246, 0.15);
+            border-color: rgba(100, 181, 246, 0.4);
+        }
+        .wave-card {
+            background: rgba(77, 208, 225, 0.15);
+            border-color: rgba(77, 208, 225, 0.4);
+        }
+        .interference-card {
+            background: rgba(171, 71, 188, 0.15);
+            border-color: rgba(171, 71, 188, 0.4);
+        }
+        .diffraction-card {
+            background: rgba(255, 112, 67, 0.15);
+            border-color: rgba(255, 112, 67, 0.4);
+        }
+        .dispersion-card {
+            background: rgba(255, 235, 59, 0.15);
+            border-color: rgba(255, 235, 59, 0.4);
+        }
+        .sound-card {
+            background: rgba(126, 87, 194, 0.15);
+            border-color: rgba(126, 87, 194, 0.4);
+        }
+        .doppler-card {
+            background: rgba(239, 83, 80, 0.15);
+            border-color: rgba(239, 83, 80, 0.4);
+        }
+        .em-card {
+            background: rgba(156, 39, 176, 0.15);
+            border-color: rgba(156, 39, 176, 0.4);
+        }
+        .matter-card {
+            background: rgba(38, 166, 154, 0.15);
+            border-color: rgba(38, 166, 154, 0.4);
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .project-card h3 {
+            margin-top: 0;
+            color: #fff;
+            font-size: 1.3rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .project-card p {
+            min-height: 60px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .project-card a {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+            position: relative;
+            z-index: 2;
+        }
+
+        .project-card a:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Grafika nawiązująca do projektów */
+        .project-icon {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 40px;
+            opacity: 0.2;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .project-card:hover .project-icon {
+            opacity: 0.4;
+            transform: scale(1.1);
+        }
+
+        /* Mini-symulacje w tle kart */
+        .card-simulation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.3;
+        }
+
+        /* Wave animation for wave cards */
+        .wave-simulation {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 30" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,10 C150,20 350,0 500,10 C650,20 750,0 900,10 C1050,20 1200,0 1200,10 L1200,30 L0,30 Z" fill="white"/></svg>');
+            background-repeat: repeat-x;
+            background-size: 600px 20px;
+            animation: waveMove 8s linear infinite;
+        }
+
+        @keyframes waveMove {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-300px); }
+        }
+
+        /* Particle animation for matter cards */
+        .particle-simulation {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* Interference pattern for interference cards */
+        .interference-pattern {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1) 0%, transparent 20%),
+                radial-gradient(circle at 70% 50%, rgba(255,255,255,0.1) 0%, transparent 20%);
+            background-size: 50px 50px;
+        }
+
+        .wave-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" fill="rgba(255,255,255,0.1)"/><path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" fill="rgba(255,255,255,0.1)"/><path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" fill="rgba(255,255,255,0.1)"/></svg>');
+            background-repeat: repeat-x;
+            background-size: 50% 100px;
+            animation: wave 15s linear infinite;
+        }
+
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            h2 {
+                font-size: 1.3rem;
+            }
+            
+            .projects {
+                grid-template-columns: 1fr;
+            }
+            
+            .wave-container {
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Fizyka to mnie fascynuje</h1>
+            <h2>Antonina Jarecka</h2>
+        </header>
+
+        <div class="projects">
+            <!-- Projekt 1 -->
+            <div class="project-card lorentz-card">
+                <div class="project-icon">🧲</div>
+                <div class="card-simulation" id="lorentz-simulation"></div>
+                <h3>1. Ruch ładunków pod wpływem siły Lorentza</h3>
+                <p>Symulacja ruchu cząstek naładowanych w polu magnetycznym</p>
+                <a href="https://colab.research.google.com/drive/1x2O6r442j_FOEZTTafsiVWD60Usar5Hb?usp=drive_link" target="_blank">Otwórz w Colab</a>
+            </div>
+
+            <!-- Projekt 2 -->
+            <div class="project-card wave-card">
+                <div class="project-icon">🌊</div>
+                <div class="card-simulation">
+                    <div class="wave-simulation"></div>
+                </div>
+                <h3>2. Wprowadzenie do analizy fal</h3>
+                <p>Podstawowe pojęcia i analiza zjawisk falowych</p>
+                <a href="https://colab.research.google.com/drive/12j8jvI_Sv69bYanEyhi-YEYgS_GDr_y7?usp=drive_link" target="_blank">Otwórz w Colab</a>
+            </div>
+
+            <!-- Projekt 3 -->
+            <div class="project-card wave-card">
+                <div class="project-icon">🌀</div>
+                <div class="card-simulation">
+                    <div class="wave-simulation"></div>
+                </div>
+                <h3>3. Animacja fali kulistej</h3>
+                <p>Wizualizacja rozchodzenia się fali kulistej w przestrzeni</p>
+                <a href="Fala1.html" target="_blank">Otwórz wizualizację</a>
+            </div>
+
+            <!-- Projekt 4 -->
+            <div class="project-card interference-card">
+                <div class="project-icon">⚡</div>
+                <div class="card-simulation">
+                    <div class="interference-pattern"></div>
+                </div>
+                <h3>4. Interferencja fal</h3>
+                <p>Badanie zjawiska interferencji fal i jego matematyczne podstawy</p>
+                <a href="https://colab.research.google.com/drive/1A6yQAcSzE3X_lhET3vgDgnG4m2Iz0C-h?usp=drive_link" target="_blank">Otwórz w Colab</a>
+            </div>
+
+            <!-- Projekt 5 -->
+            <div class="project-card interference-card">
+                <div class="project-icon">💫</div>
+                <div class="card-simulation">
+                    <div class="interference-pattern"></div>
+                </div>
+                <h3>5. Animacja interferencji</h3>
+                <p>Interaktywna wizualizacja interferencji dwóch fal</p>
+                <a href="Interferencja.html" target="_blank">Otwórz wizualizację</a>
+            </div>
+
+            <!-- Projekt 6 -->
+            <div class="project-card diffraction-card">
+                <div class="project-icon">🔍</div>
+                <div class="card-simulation" id="diffraction-simulation"></div>
+                <h3>6. Dyfrakcja</h3>
+                <p>Badanie zjawiska dyfrakcji na pojedynczej i podwójnej szczelinie</p>
+                <a href="https://colab.research.google.com/drive/14nwgx5nAvnaPdKgNG6JK_eVG07Y8dE5A?usp=drive_link" target="_blank">Otwórz w Colab</a>
+            </div>
+
+            <!-- Projekt 7 -->
+            <div class="project-card dispersion-card">
+                <div class="project-icon">🌈</div>
+                <div class="card-simulation" id="dispersion-simulation"></div>
+                <h3>7. Dyspersja</h3>
+                <p>Rozszczepienie światła w zależności od długości fali</p>
+                <a href="https://colab.research.google.com/drive/1xX5IeXDguhMDhFFj1BhP2y6Js_6GzgTp?usp=sharing" target="_blank">Otwórz w Colab</a>
+            </div>
+
+            <!-- Projekt 8 -->
+            <div class="project-card sound-card">
+                <div class="project-icon">🎵</div>
+                <div class="card-simulation" id="sound-simulation"></div>
+                <h3>8. Fale dźwiękowe</h3>
+                <p>Charakterystyka i właściwości fal dźwiękowych</p>
+                <a href="https://colab.research.google.com/drive/1kkzXm1J_94IuwjGj2xLykUZzrIb7IaMw?usp=drive_link" target="_blank">Otwórz w Colab</a>
+            </div>
+
+            <!-- Projekt 9 -->
+            <div class="project-card doppler-card">
+                <div class="project-icon">🚗</div>
+                <div class="card-simulation" id="doppler-simulation"></div>
+                <h3>9. Efekt Dopplera</h3>
+                <p>Wizualizacja zmiany częstotliwości fali w ruchu względnym</p>
+                <a href="Efekt Dopplera.html" target="_blank">Otwórz wizualizację</a>
+            </div>
+
+            <!-- Projekt 10 -->
+            <div class="project-card em-card">
+                <div class="project-icon">📡</div>
+                <div class="card-simulation" id="em-simulation"></div>
+                <h3>10. Fale elektromagnetyczne</h3>
+                <p>Charakterystyka i właściwości fal elektromagnetycznych</p>
+                <a href="https://colab.research.google.com/drive/1Qkdo2uLRG-yRYQdoqsM5y7D9f9eLrZiS?usp=drive_link" target="_blank">Otwórz w Colab</a>
+            </div>
+
+            <!-- Projekt 11 -->
+            <div class="project-card em-card">
+                <div class="project-icon">🔮</div>
+                <div class="card-simulation" id="spectrum-simulation"></div>
+                <h3>11. Widmo fal elektromagnetycznych</h3>
+                <p>Przegląd różnych zakresów widma EM i ich zastosowań</p>
+                <a href="Widmo fal EM.html" target="_blank">Otwórz wizualizację</a>
+            </div>
+
+            <!-- Projekt 12 -->
+            <div class="project-card matter-card">
+                <div class="project-icon">⚛️</div>
+                <div class="card-simulation particle-simulation" id="matter-simulation"></div>
+                <h3>12. Fale materii</h3>
+                <p>Dualizm korpuskularno-falowy i fale de Broglie'a</p>
+                <a href="https://colab.research.google.com/drive/1vpVwOhePyyMqa9qnmssqm0d2BKsNq6VZ?usp=drive_link" target="_blank">Otwórz w Colab</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="wave-container">
+        <div class="wave"></div>
+    </div>
+
+    <script>
+        // Dźwięki - opcjonalne
+        function playSound(frequency, duration) {
+            if (typeof AudioContext !== "undefined" || typeof webkitAudioContext !== "undefined") {
+                const audioContext = new (AudioContext || webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.type = "sine";
+                oscillator.frequency.value = frequency;
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + duration);
+            }
+        }
+
+        // Obsługa dźwięków przy najechaniu na karty
+        document.querySelectorAll('.project-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                // Inne dźwięki dla różnych typów kart
+                if (card.classList.contains('wave-card')) {
+                    playSound(440, 0.5);
+                } else if (card.classList.contains('interference-card')) {
+                    playSound(523.25, 0.3);
+                    setTimeout(() => playSound(659.25, 0.3), 100);
+                } else if (card.classList.contains('doppler-card')) {
+                    // Efekt Dopplera - zmiana częstotliwości
+                    const startTime = performance.now();
+                    const interval = setInterval(() => {
+                        const elapsed = (performance.now() - startTime) / 1000;
+                        if (elapsed > 0.5) clearInterval(interval);
+                        const freq = 600 - (elapsed * 200);
+                        playSound(freq, 0.1);
+                    }, 50);
+                } else {
+                    playSound(349.23, 0.2);
+                }
+            });
+        });
+
+        // Mini-symulacje w tle
+        function createParticles(container, count, color, behavior) {
+            const particles = [];
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.backgroundColor = color;
+                p.style.width = `${Math.random() * 5 + 2}px`;
+                p.style.height = p.style.width;
+                container.appendChild(p);
+                
+                const particle = {
+                    el: p,
+                    x: Math.random() * container.offsetWidth,
+                    y: Math.random() * container.offsetHeight,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2,
+                    behavior: behavior
+                };
+                
+                particles.push(particle);
+            }
+            
+            function update() {
+                particles.forEach(p => {
+                    // Różne zachowania cząstek
+                    if (p.behavior === 'lorentz') {
+                        // Symulacja siły Lorentza - ruch po okręgu
+                        const angle = Math.atan2(p.y - container.offsetHeight/2, p.x - container.offsetWidth/2);
+                        p.vx = -Math.sin(angle) * 1;
+                        p.vy = Math.cos(angle) * 1;
+                    } else if (p.behavior === 'wave') {
+                        // Drgania falowe w pionie
+                        p.vy = Math.sin(Date.now()/500 + p.x/50) * 0.5;
+                    }
+                    
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    
+                    // Odbijanie od krawędzi
+                    if (p.x < 0 || p.x > container.offsetWidth) p.vx *= -1;
+                    if (p.y < 0 || p.y > container.offsetHeight) p.vy *= -1;
+                    
+                    p.el.style.transform = `translate(${p.x}px, ${p.y}px)`;
+                });
+                
+                requestAnimationFrame(update);
+            }
+            
+            update();
+        }
+
+        // Inicjalizacja symulacji
+        document.addEventListener('DOMContentLoaded', () => {
+            // Siła Lorentza - cząstki krążące
+            const lorentzSim = document.getElementById('lorentz-simulation');
+            if (lorentzSim) createParticles(lorentzSim, 15, 'rgba(100, 181, 246, 0.7)', 'lorentz');
+            
+            // Fale dźwiękowe - cząstki drgające
+            const soundSim = document.getElementById('sound-simulation');
+            if (soundSim) createParticles(soundSim, 20, 'rgba(126, 87, 194, 0.7)', 'wave');
+            
+            // Fale materii - losowe cząstki
+            const matterSim = document.getElementById('matter-simulation');
+            if (matterSim) createParticles(matterSim, 30, 'rgba(38, 166, 154, 0.7)', 'random');
+            
+            // Efekt Dopplera - cząstki zmieniające kolor
+            const dopplerSim = document.getElementById('doppler-simulation');
+            if (dopplerSim) {
+                createParticles(dopplerSim, 10, 'rgba(239, 83, 80, 0.7)', 'doppler');
+                const particles = Array.from(dopplerSim.querySelectorAll('.particle'));
+                setInterval(() => {
+                    particles.forEach(p => {
+                        const hue = Math.sin(Date.now()/1000) * 30 + 350;
+                        p.style.backgroundColor = `hsla(${hue}, 80%, 70%, 0.7)`;
+                    });
+                }, 50);
+            }
+            
+            // Dyspersja - gradient kolorów
+            const dispersionSim = document.getElementById('dispersion-simulation');
+            if (dispersionSim) {
+                dispersionSim.style.background = 'linear-gradient(45deg, rgba(255,0,0,0.1), rgba(0,255,0,0.1), rgba(0,0,255,0.1))';
+                dispersionSim.style.animation = 'gradient 10s ease infinite';
+            }
+        });
+
+        // Pływające cząstki w tle strony
+        function createFloatingParticles() {
+            const colors = ['rgba(255, 255, 255, 0.3)', 'rgba(173, 216, 230, 0.4)', 'rgba(144, 238, 144, 0.4)', 'rgba(255, 255, 255, 0.5)'];
+            
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 5 + 2;
+                const posX = Math.random() * window.innerWidth;
+                const posY = Math.random() * (window.innerHeight - 100);
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const duration = Math.random() * 20 + 10;
+                const delay = Math.random() * 5;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${posX}px`;
+                particle.style.top = `${posY}px`;
+                particle.style.backgroundColor = color;
+                particle.style.animation = `float ${duration}s ease-in-out ${delay}s infinite`;
+                
+                document.body.appendChild(particle);
+            }
+        }
+        
+        // Dodanie animacji płynięcia
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes float {
+                0% { transform: translateY(0) translateX(0); opacity: 1; }
+                50% { transform: translateY(-100px) translateX(50px); opacity: 0.7; }
+                100% { transform: translateY(-200px) translateX(0); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Utworzenie cząstek po załadowaniu strony
+        window.addEventListener('load', () => {
+            createFloatingParticles();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Efekt Dopplera - Symulator</title>
+    <style>
+        canvas { border: 1px solid #000; }
+        .controls { margin: 20px; }
+        .slider-container { margin: 15px 0; }
+        label { display: inline-block; width: 250px; }
+        button { 
+            padding: 10px 20px;
+            margin: 10px 5px;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .direction-btn { width: 40px; background: #666; }
+        #observedFrequency { font-size: 24px; color: #2196F3; margin: 20px 0; }
+        #formulaBox { background: #f0f0f0; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .unit-info { color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <div class="slider-container">
+            <label>Prędkość źródła (w jednostkach v): </label>
+            <input type="range" id="sourceSpeed" min="0" max="2" step="0.1" value="0.7">
+            <button id="sourceDirection" class="direction-btn" onclick="toggleDirection('source')">→</button>
+            <span id="sourceSpeedValue">0.7</span>
+        </div>
+        
+        <div class="slider-container">
+            <label>Prędkość obserwatora (w jednostkach v): </label>
+            <input type="range" id="observerSpeed" min="0" max="1" step="0.1" value="0">
+            <button id="observerDirection" class="direction-btn" onclick="toggleDirection('observer')">→</button>
+            <span id="observerSpeedValue">0.0</span>
+        </div>
+        
+        <div class="slider-container">
+            <label>Częstotliwość bazowa (f<sub>0</sub>): </label>
+            <input type="range" id="frequency" min="0.5" max="4" step="0.5" value="2">
+            <span id="frequencyValue">2.0</span> Hz
+        </div>
+        
+        <div id="formulaBox">
+            <h3>Wzór Dopplera:</h3>
+            <div id="formulaDisplay">
+                <div id="generalFormula">f' = f₀ × (v ± v<sub>obs</sub>) / (v ∓ v<sub>źród</sub>)</div>
+                <div id="specificFormula"></div>
+            </div>
+            <div class="unit-info">gdzie: v = prędkość dźwięku, wartości prędkości wyrażone w jednostkach v</div>
+        </div>
+        
+        <div id="observedFrequency"></div>
+        <button onclick="toggleAnimation()" style="background:#2196F3" id="startButton">Start</button>
+        <button onclick="resetAnimation()" style="background:#f44336">Reset</button>
+    </div>
+    <canvas id="canvas" width="1200" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const v_sound = 200; // Prędkość dźwięku w px/s
+        
+        let animationRunning = false;
+        let lastFrameTime = 0;
+        let lastEmissionTime = 0;
+        let waves = [];
+        
+        const objects = {
+            source: { x: 200, y: 200, dir: 1, speed: 0 },
+            observer: { x: 800, y: 200, dir: 1, speed: 0 }
+        };
+
+        function toggleDirection(type) {
+            const obj = objects[type];
+            obj.dir *= -1;
+            document.getElementById(`${type}Direction`).textContent = obj.dir === 1 ? '→' : '←';
+            updateParameters();
+        }
+
+        function updateParameters() {
+            objects.source.speed = document.getElementById('sourceSpeed').value * objects.source.dir * v_sound;
+            objects.observer.speed = document.getElementById('observerSpeed').value * objects.observer.dir * v_sound;
+            
+            document.getElementById('sourceSpeedValue').textContent = 
+                (Math.abs(objects.source.speed)/v_sound).toFixed(1);
+            document.getElementById('observerSpeedValue').textContent = 
+                (Math.abs(objects.observer.speed)/v_sound).toFixed(1);
+            document.getElementById('frequencyValue').textContent = 
+                parseFloat(document.getElementById('frequency').value).toFixed(1);
+            
+            return parseFloat(document.getElementById('frequency').value);
+        }
+
+        function createWave() {
+            waves.push({
+                x: objects.source.x,
+                y: objects.source.y,
+                radius: 0,
+                alpha: 1.0
+            });
+        }
+
+        function drawWave(wave) {
+            ctx.beginPath();
+            ctx.arc(wave.x, wave.y, wave.radius, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(0,0,255,${wave.alpha})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function updateFormula() {
+            const v = 1; // W jednostkach względnych
+            const vs = (objects.source.speed/v_sound).toFixed(1);
+            const vo = (objects.observer.speed/v_sound).toFixed(1);
+            const f0 = parseFloat(document.getElementById('frequency').value).toFixed(1);
+            
+            const relativePos = objects.source.x - objects.observer.x;
+            const relativeSpeed = objects.source.speed - objects.observer.speed;
+            const approaching = (relativePos * relativeSpeed) < 0;
+
+            let formula;
+            if (Math.abs(vs) >= 1) {
+                formula = "FALA UDERZENIOWA (v<sub>źródła</sub> ≥ 1)";
+            } else {
+                formula = `
+                    f' = ${f0} × (${v} ${vo < 0 ? "-" : "+"} ${Math.abs(vo)}) 
+                    / 
+                    (${v} ${vs < 0 ? "+" : "-"} ${Math.abs(vs)})
+                    <br>
+                    <span style="color: ${approaching ? 'green' : 'red'}">
+                        Źródło: ${approaching ? 'Zbliża się' : 'Oddala się'}
+                    </span>
+                `;
+            }
+            
+            document.getElementById('specificFormula').innerHTML = formula;
+        }
+
+        function animate(timestamp) {
+            if (!animationRunning) return;
+            
+            if (!lastFrameTime) lastFrameTime = timestamp;
+            const deltaTime = (timestamp - lastFrameTime) / 1000;
+            lastFrameTime = timestamp;
+
+            const prevRelativePos = objects.source.x - objects.observer.x;
+            
+            objects.source.x += objects.source.speed * deltaTime;
+            objects.observer.x += objects.observer.speed * deltaTime;
+            
+            const currRelativePos = objects.source.x - objects.observer.x;
+
+            const frequency = updateParameters();
+            if (timestamp - lastEmissionTime > 1000 / frequency) {
+                createWave();
+                lastEmissionTime = timestamp;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            waves.forEach((wave, index) => {
+                wave.radius += v_sound * deltaTime;
+                wave.alpha = Math.max(0, 1 - wave.radius/600);
+                if (wave.radius > 600) {
+                    waves.splice(index, 1);
+                } else {
+                    drawWave(wave);
+                }
+            });
+
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.arc(objects.source.x, objects.source.y, 15, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = prevRelativePos * currRelativePos < 0 ? 'yellow' : 'green';
+            ctx.beginPath();
+            ctx.arc(objects.observer.x, objects.observer.y, 15, 0, Math.PI * 2);
+            ctx.fill();
+
+            updateFormula();
+
+            // Obliczanie prędkości względem obserwatora i źródła
+            const relativePos = objects.source.x - objects.observer.x;
+            const v_obs = objects.observer.speed * (relativePos < 0 ? -1 : 1); // Obserwator zbliża się (+), oddala (-)
+            const v_src = objects.source.speed * (relativePos < 0 ? 1 : -1);   // Źródło zbliża się (+), oddala (-)
+            
+            // Wzór Dopplera: f' = f0 * (v + v_obs) / (v - v_src)
+            const numerator = v_sound + v_obs;
+            const denominator = v_sound - v_src;
+            const observedFreq = Math.abs(denominator) > 0.001 ? frequency * numerator / denominator : 0;
+
+            // Debugowanie
+            console.log(`f0: ${frequency}, v_obs: ${v_obs}, v_src: ${v_src}, f': ${observedFreq}`);
+
+            let freqDisplay = `Częstotliwość obserwowana: <strong>${observedFreq.toFixed(2)} Hz</strong>`;
+            if (prevRelativePos * currRelativePos < 0) {
+                freqDisplay += `<br><span style="color: red;">Źródło minęło obserwatora!</span>`;
+            }
+            document.getElementById('observedFrequency').innerHTML = freqDisplay;
+
+            requestAnimationFrame(animate);
+        }
+
+        function toggleAnimation() {
+            animationRunning = !animationRunning;
+            document.getElementById('startButton').textContent = animationRunning ? 'Pauza' : 'Start';
+            if (animationRunning) {
+                lastFrameTime = 0;
+                requestAnimationFrame(animate);
+            }
+        }
+
+        function resetAnimation() {
+            animationRunning = false;
+            waves = [];
+            lastFrameTime = 0;
+            objects.source.x = 200;
+            objects.observer.x = 800;
+            document.getElementById('startButton').textContent = 'Start';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            updateFormula();
+            document.getElementById('observedFrequency').innerHTML = 
+                `Częstotliwość obserwowana: <strong>0.00 Hz</strong>`;
+        }
+
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => {
+                updateParameters();
+                updateFormula();
+            });
+        });
+        updateParameters();
+        updateFormula();
+    </script>
+</body>
+</html>

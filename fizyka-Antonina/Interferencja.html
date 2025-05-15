@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interferencja Fal - Symulacja Edukacyjna</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      width: 200px;
+      background-color: #555;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -100px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans">
+  <!-- Nagłówek -->
+  <header class="bg-blue-600 text-white p-4 shadow-md w-full">
+    <h1 class="text-2xl font-bold text-center">Interferencja Fal - Symulacja Edukacyjna</h1>
+  </header>
+
+  <!-- Główna zawartość -->
+  <div class="flex flex-col md:flex-row min-h-screen">
+    <!-- Panel boczny z kontrolkami -->
+    <aside class="bg-white p-6 shadow-md w-full md:w-1/4">
+      <h2 class="text-xl font-semibold mb-4">Ustawienia Symulacji</h2>
+      <div class="space-y-4">
+        <!-- Liczba szczelin -->
+        <div class="tooltip">
+          <label for="numSlits" class="block text-sm font-medium text-gray-700">Liczba szczelin (1-4):</label>
+          <input type="number" id="numSlits" min="1" max="4" value="2" class="mt-1 block w-full p-2 border rounded-md">
+          <span class="tooltip-text">Określa liczbę źródeł fal (szczelin). Wpływa na wzór interferencyjny.</span>
+        </div>
+
+        <!-- Prędkość fal -->
+        <div class="tooltip">
+          <label for="waveSpeed" class="block text-sm font-medium text-gray-700">Prędkość fal (0.1-5.0): <span id="waveSpeedValue">1.0</span></label>
+          <input type="range" id="waveSpeed" min="0.1" max="5.0" step="0.1" value="1.0" class="w-full">
+          <span class="tooltip-text">Reguluje tempo rozchodzenia się fal. Niższe wartości spowalniają, wyższe przyspieszają.</span>
+        </div>
+
+        <!-- Położenie szczelin -->
+        <div class="tooltip">
+          <label for="slit1Pos" class="block text-sm font-medium text-gray-700">Położenie szczeliny 1 (x): <span id="slit1PosValue">-5</span></label>
+          <input type="range" id="slit1Pos" min="-15" max="15" value="-5" class="w-full">
+          <span class="tooltip-text">Pozycja pierwszej szczeliny w osi X. Zmiana wpływa na wzór interferencyjny.</span>
+        </div>
+        <div class="tooltip">
+          <label for="slit2Pos" class="block text-sm font-medium text-gray-700">Położenie szczeliny 2 (x): <span id="slit2PosValue">5</span></label>
+          <input type="range" id="slit2Pos" min="-15" max="15" value="5" class="w-full">
+          <span class="tooltip-text">Pozycja drugiej szczeliny w osi X.</span>
+        </div>
+        <div class="tooltip">
+          <label for="slit3Pos" class="block text-sm font-medium text-gray-700">Położenie szczeliny 3 (x): <span id="slit3PosValue">0</span></label>
+          <input type="range" id="slit3Pos" min="-15" max="15" value="0" disabled class="w-full">
+          <span class="tooltip-text">Pozycja trzeciej szczeliny w osi X (aktywna przy 3+ szczelinach).</span>
+        </div>
+        <div class="tooltip">
+          <label for="slit4Pos" class="block text-sm font-medium text-gray-700">Położenie szczeliny 4 (x): <span id="slit4PosValue">0</span></label>
+          <input type="range" id="slit4Pos" min="-15" max="15" value="0" disabled class="w-full">
+          <span class="tooltip-text">Pozycja czwartej szczeliny w osi X (aktywna przy 4 szczelinach).</span>
+        </div>
+
+        <!-- Przycisk resetowania -->
+        <button id="resetButton" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition">Resetuj ustawienia</button>
+      </div>
+    </aside>
+
+    <!-- Sekcja z płótnami i informacjami -->
+    <main class="flex-1 p-6">
+      <!-- Przełącznik widoku -->
+      <div class="mb-4">
+        <label class="text-sm font-medium text-gray-700">Widok:</label>
+        <select id="viewMode" class="ml-2 p-2 border rounded-md">
+          <option value="both">2D i 3D</option>
+          <option value="2d">Tylko 2D</option>
+          <option value="3d">Tylko 3D</option>
+        </select>
+      </div>
+
+      <!-- Kontener płócien -->
+      <div id="canvasContainer" class="flex flex-col md:flex-row gap-4">
+        <div id="canvas2D" class="bg-white p-4 shadow-md rounded-md"></div>
+        <div id="canvas3D" class="bg-white p-4 shadow-md rounded-md"></div>
+      </div>
+
+      <!-- Sekcja edukacyjna -->
+      <section class="mt-6 bg-white p-6 shadow-md rounded-md">
+        <h2 class="text-xl font-semibold mb-4">O Interferencji Fal</h2>
+        <p class="text-gray-700 mb-4">
+          Interferencja fal to zjawisko, w którym dwie lub więcej fal nakłada się na siebie, tworząc nowy wzór. W tej symulacji możesz obserwować, jak fale wychodzące z różnie rozmieszczonych szczelin (źródeł) interferują, tworząc obszary wzmocnienia (jasne kolory) i wygaszania (ciemne kolory).
+        </p>
+        <p class="text-gray-700 mb-4">
+          Eksperyment ten nawiązuje do doświadczenia Younga, które pokazało falową naturę światła. Zmieniając liczbę i położenie szczelin oraz prędkość fal, możesz zobaczyć, jak te parametry wpływają na wzór interferencyjny.
+        </p>
+        <ul class="list-disc list-inside text-gray-700">
+          <li><strong>Liczba szczelin</strong>: Więcej szczelin tworzy bardziej złożony wzór.</li>
+          <li><strong>Położenie szczelin</strong>: Zmiana pozycji zmienia rozkład maksimów i minimów.</li>
+          <li><strong>Prędkość fal</strong>: Wpływa na dynamikę animacji, pokazując ruch fal w czasie.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <!-- Stopka -->
+  <footer class="bg-gray-800 text-white p-4 text-center w-full">
+    <p>© 2025 Symulacja Interferencji Fal | Stworzone dla celów edukacyjnych</p>
+  </footer>
+
+  <script>
+    let numSlits = 2;
+    let slitPositions = [-5, 5, 0, 0]; // Położenia szczelin w osi x
+    let A = 1.0; // Amplituda
+    let k = 2 * Math.PI / 10; // Liczba falowa
+    let omega = 2 * Math.PI / 20; // Częstość
+    let t = 0;
+    let speedFactor = 1.0; // Zmniejszona prędkość startowa
+
+    // Funkcja mapowania amplitudy na kolor
+    function getColor(p, z, maxZ) {
+      let normZ = p.map(z, -maxZ, maxZ, 0, 1);
+      let r, g, b;
+      if (normZ < 0.33) {
+        r = p.map(normZ, 0, 0.33, 0, 128);
+        g = 0;
+        b = p.map(normZ, 0, 0.33, 255, 128);
+      } else if (normZ < 0.66) {
+        r = p.map(normZ, 0.33, 0.66, 128, 255);
+        g = p.map(normZ, 0.33, 0.66, 0, 255);
+        b = p.map(normZ, 0.33, 0.66, 128, 0);
+      } else {
+        r = 255;
+        g = p.map(normZ, 0.66, 1, 255, 0);
+        b = 0;
+      }
+      return [r, g, b];
+    }
+
+    // Sketch dla widoku 2D
+    function sketch2D(p) {
+      p.setup = function() {
+        p.createCanvas(400, 400);
+        p.pixelDensity(1);
+      };
+
+      p.draw = function() {
+        p.background(0);
+        p.loadPixels();
+        let w = p.width;
+        let h = p.height;
+
+        for (let x = 0; x < w; x++) {
+          for (let y = 0; y < h; y++) {
+            let canvasX = p.map(x, 0, w, -30, 30);
+            let canvasY = p.map(y, 0, h, 60, 0);
+            let z = 0;
+            for (let i = 0; i < numSlits; i++) {
+              let r = Math.sqrt((canvasX - slitPositions[i])**2 + canvasY**2);
+              let phi = k * r - omega * t;
+              z += A * Math.sin(phi) / (1 + 0.05 * r);
+            }
+            let [r, g, b] = getColor(p, z, numSlits * A);
+            let idx = 4 * (x + y * w);
+            p.pixels[idx] = r;
+            p.pixels[idx + 1] = g;
+            p.pixels[idx + 2] = b;
+            p.pixels[idx + 3] = 255;
+          }
+        }
+        p.updatePixels();
+
+        // Rysowanie szczelin
+        p.fill(255, 255, 0);
+        p.noStroke();
+        for (let i = 0; i < numSlits; i++) {
+          let xPos = p.map(slitPositions[i], -30, 30, 0, p.width);
+          p.circle(xPos, p.height, 5);
+        }
+      };
+    }
+
+    // Sketch dla widoku 3D
+    function sketch3D(p) {
+      p.setup = function() {
+        p.createCanvas(400, 400, p.WEBGL);
+        p.setAttributes('antialias', true);
+      };
+
+      p.draw = function() {
+        p.background(0);
+        p.ambientLight(50);
+        p.pointLight(255, 255, 255, 0, -200, 200);
+        p.orbitControl();
+        p.rotateX(p.radians(60));
+        p.noStroke();
+
+        let gridSize = 40;
+        let stepX = 60 / gridSize;
+        let stepY = 60 / gridSize;
+
+        for (let i = 0; i < gridSize - 1; i++) {
+          p.beginShape(p.TRIANGLE_STRIP);
+          for (let j = 0; j < gridSize; j++) {
+            let x1 = p.map(i, 0, gridSize, -30, 30);
+            let x2 = p.map(i + 1, 0, gridSize, -30, 30);
+            let y = p.map(j, 0, gridSize, 0, 60);
+
+            let z1 = 0;
+            for (let s = 0; s < numSlits; s++) {
+              let r = Math.sqrt((x1 - slitPositions[s])**2 + y**2);
+              let phi = k * r - omega * t;
+              z1 += A * Math.sin(phi) / (1 + 0.05 * r);
+            }
+            let [r1, g1, b1] = getColor(p, z1, numSlits * A);
+            p.fill(r1, g1, b1);
+            p.vertex(p.map(x1, -30, 30, -150, 150), p.map(y, 0, 60, -150, 150), z1 * 40);
+
+            let z2 = 0;
+            for (let s = 0; s < numSlits; s++) {
+              let r = Math.sqrt((x2 - slitPositions[s])**2 + y**2);
+              let phi = k * r - omega * t;
+              z2 += A * Math.sin(phi) / (1 + 0.05 * r);
+            }
+            let [r2, g2, b2] = getColor(p, z2, numSlits * A);
+            p.fill(r2, g2, b2);
+            p.vertex(p.map(x2, -30, 30, -150, 150), p.map(y, 0, 60, -150, 150), z2 * 40);
+          }
+          p.endShape();
+        }
+
+        p.fill(255, 255, 0);
+        for (let i = 0; i < numSlits; i++) {
+          p.push();
+          p.translate(p.map(slitPositions[i], -30, 30, -150, 150), 150, 0);
+          p.sphere(3);
+          p.pop();
+        }
+      };
+    }
+
+    // Inicjalizacja p5.js
+    new p5(sketch2D, 'canvas2D');
+    new p5(sketch3D, 'canvas3D');
+
+    // Obsługa kontrolek
+    document.getElementById('numSlits').addEventListener('input', (e) => {
+      let value = parseInt(e.target.value);
+      if (value >= 1 && value <= 4) {
+        numSlits = value;
+        updateSlitControls();
+      } else {
+        e.target.value = numSlits;
+      }
+    });
+
+    document.getElementById('waveSpeed').addEventListener('input', (e) => {
+      speedFactor = parseFloat(e.target.value);
+      document.getElementById('waveSpeedValue').textContent = speedFactor.toFixed(1);
+    });
+
+    document.getElementById('slit1Pos').addEventListener('input', (e) => {
+      slitPositions[0] = parseFloat(e.target.value);
+      document.getElementById('slit1PosValue').textContent = slitPositions[0];
+    });
+
+    document.getElementById('slit2Pos').addEventListener('input', (e) => {
+      slitPositions[1] = parseFloat(e.target.value);
+      document.getElementById('slit2PosValue').textContent = slitPositions[1];
+    });
+
+    document.getElementById('slit3Pos').addEventListener('input', (e) => {
+      slitPositions[2] = parseFloat(e.target.value);
+      document.getElementById('slit3PosValue').textContent = slitPositions[2];
+    });
+
+    document.getElementById('slit4Pos').addEventListener('input', (e) => {
+      slitPositions[3] = parseFloat(e.target.value);
+      document.getElementById('slit4PosValue').textContent = slitPositions[3];
+    });
+
+    // Resetowanie ustawień
+    document.getElementById('resetButton').addEventListener('click', () => {
+      numSlits = 2;
+      slitPositions = [-5, 5, 0, 0];
+      speedFactor = 1.0; // Zmniejszona prędkość startowa
+      document.getElementById('numSlits').value = numSlits;
+      document.getElementById('waveSpeed').value = speedFactor;
+      document.getElementById('waveSpeedValue').textContent = speedFactor.toFixed(1);
+      document.getElementById('slit1Pos').value = slitPositions[0];
+      document.getElementById('slit1PosValue').textContent = slitPositions[0];
+      document.getElementById('slit2Pos').value = slitPositions[1];
+      document.getElementById('slit2PosValue').textContent = slitPositions[1];
+      document.getElementById('slit3Pos').value = slitPositions[2];
+      document.getElementById('slit3PosValue').textContent = slitPositions[2];
+      document.getElementById('slit4Pos').value = slitPositions[3];
+      document.getElementById('slit4PosValue').textContent = slitPositions[3];
+      updateSlitControls();
+    });
+
+    // Przełączanie widoku
+    document.getElementById('viewMode').addEventListener('change', (e) => {
+      const canvas2D = document.getElementById('canvas2D');
+      const canvas3D = document.getElementById('canvas3D');
+      if (e.target.value === '2d') {
+        canvas2D.style.display = 'block';
+        canvas3D.style.display = 'none';
+        canvas2D.classList.add('mx-auto');
+      } else if (e.target.value === '3d') {
+        canvas2D.style.display = 'none';
+        canvas3D.style.display = 'block';
+        canvas3D.classList.add('mx-auto');
+      } else {
+        canvas2D.style.display = 'block';
+        canvas3D.style.display = 'block';
+        canvas2D.classList.remove('mx-auto');
+        canvas3D.classList.remove('mx-auto');
+      }
+    });
+
+    function updateSlitControls() {
+      document.getElementById('slit1Pos').disabled = numSlits < 1;
+      document.getElementById('slit2Pos').disabled = numSlits < 2;
+      document.getElementById('slit3Pos').disabled = numSlits < 3;
+      document.getElementById('slit4Pos').disabled = numSlits < 4;
+    }
+
+    // Aktualizacja czasu
+    setInterval(() => {
+      t += speedFactor * 3.0;
+    }, 30);
+  </script>
+</body>
+</html>

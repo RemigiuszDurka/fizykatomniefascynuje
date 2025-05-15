@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Widmo fal elektromagnetycznych</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(to bottom, #0d1b2a, #1b263b);
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      text-align: center;
+      margin: 20px;
+      font-size: 2em;
+      color: #f8f9fa;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+    }
+    .spectrum {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      position: relative;
+      height: 300px;
+      border-bottom: 2px solid #ccc;
+      background: linear-gradient(to right, #5500ff, #0000ff, #0099ff, #00ff00, #ffff00, #ff9900, #ff3300);
+      overflow: hidden;
+    }
+    .scanner {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: white;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .band {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      cursor: pointer;
+      height: 100%;
+      background-color: rgba(0,0,0,0.2);
+      transition: background 0.3s;
+    }
+    .band:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    .band span {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 1px 1px 3px #000;
+    }
+    .band.highlight {
+      outline: 3px solid #fff;
+      z-index: 10;
+    }
+    .tooltip {
+      position: absolute;
+      background-color: #1e1e2f;
+      color: white;
+      border: 1px solid #666;
+      padding: 8px;
+      border-radius: 6px;
+      pointer-events: none;
+      display: none;
+      z-index: 1000;
+      font-size: 14px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    .wave-canvas {
+      width: 100vw;
+      height: 150px;
+      display: block;
+      background: #121212;
+    }
+    .details {
+      text-align: center;
+      padding: 20px;
+      background: #0d1b2a;
+      font-size: 18px;
+      min-height: 80px;
+      color: #f1f1f1;
+      box-shadow: inset 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .scale, .freq-scale {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 10px;
+      font-size: 12px;
+      color: #ccc;
+      background: #1b263b;
+    }
+    .search-box {
+      text-align: center;
+      margin: 10px;
+    }
+    .search-box input {
+      padding: 5px;
+      width: 200px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Widmo fal elektromagnetycznych</h1>
+  <canvas id="waveCanvas" class="wave-canvas"></canvas>
+  <div class="search-box">
+    <label for="search">Wpisz długość fali (nm): </label>
+    <input type="number" id="search" placeholder="np. 550">
+  </div>
+  <div class="spectrum" id="spectrum">
+    <div class="scanner" id="scanner"></div>
+  </div>
+  <div class="scale">
+    <span>0.00001 nm</span>
+    <span>0.001 nm</span>
+    <span>0.1 nm</span>
+    <span>10 nm</span>
+    <span>1000 nm</span>
+    <span>0.1 mm</span>
+    <span>10 cm</span>
+    <span>1 m</span>
+  </div>
+  <div class="freq-scale">
+    <span>10²⁴ Hz</span>
+    <span>10²² Hz</span>
+    <span>10²⁰ Hz</span>
+    <span>10¹⁸ Hz</span>
+    <span>10¹⁶ Hz</span>
+    <span>10¹⁴ Hz</span>
+    <span>10¹² Hz</span>
+    <span>10¹⁰ Hz</span>
+  </div>
+  <div class="details" id="details"></div>
+  <div class="tooltip" id="tooltip"></div>
+
+  <script>
+    const c = 3e8;
+    const scanner = document.getElementById('scanner');
+    const spectrum = document.getElementById('spectrum');
+
+    spectrum.addEventListener('mousemove', (e) => {
+      const rect = spectrum.getBoundingClientRect();
+      scanner.style.left = (e.clientX - rect.left) + 'px';
+    });
+
+    const bands = [
+      { name: "🔬 Gamma (promieniowanie gamma)", color: "#5500ff", wavelength: 0.00005, info: "Stosowane w medycynie, energia jądrowa", temp: 5.8e9 },
+      { name: "🩻 Rentgen (promieniowanie rentgenowskie)", color: "#0000ff", wavelength: 0.0001, info: "Diagnostyka medyczna, przemysł", temp: 2.9e9 },
+      { name: "🧴 UV (promieniowanie ultrafioletowe)", color: "#0099ff", wavelength: 0.0002, info: "Dezynfekcja, opalanie", temp: 1.45e9 },
+      { name: "👁 Widzialne (światło widzialne)", color: "#00ff00", wavelength: 0.00055, info: "Widoczne przez oko ludzkie", temp: 5.3e3 },
+      { name: "🌡 IR (promieniowanie podczerwone)", color: "#ffff00", wavelength: 0.001, info: "Termowizja, piloty, grzanie", temp: 2.9e3 },
+      { name: "📡 Mikrofale", color: "#ff9900", wavelength: 0.01, info: "Wi-Fi, kuchenki mikrofalowe", temp: 290 },
+      { name: "📻 Radio (fale radiowe)", color: "#ff3300", wavelength: 1, info: "Komunikacja, transmisja", temp: 2.9 },
+    ];
+
+    const tooltip = document.getElementById('tooltip');
+    const details = document.getElementById('details');
+    const waveCanvas = document.getElementById('waveCanvas');
+    const ctx = waveCanvas.getContext('2d');
+    waveCanvas.width = window.innerWidth;
+    waveCanvas.height = 150;
+
+    let offset = 0;
+    let activeBand = bands.find(b => b.name.includes("Widzialne"));
+
+    bands.forEach(band => {
+      const div = document.createElement('div');
+      div.className = 'band';
+      div.style.backgroundColor = band.color + '33';
+      div.innerHTML = `<span>${band.name}</span>`;
+
+      div.addEventListener('mouseenter', () => {
+        activeBand = band;
+        const freq = (c / (band.wavelength)).toExponential(2);
+        const waveNm = (band.wavelength * 1e9).toFixed(2);
+        const temp = band.temp.toExponential(2);
+        details.innerHTML = `
+          <strong>${band.name}</strong><br>
+          Długość fali: ${waveNm} nm<br>
+          Częstotliwość: ${freq} Hz<br>
+          Temperatura maksimum promieniowania ciała doskonałego: ${temp} K<br>
+          ${band.info}
+        `;
+      });
+
+      div.addEventListener('mouseleave', () => {
+        details.innerText = '';
+        activeBand = null;
+      });
+
+      div.addEventListener('mousemove', (e) => {
+        tooltip.style.left = e.pageX + 10 + 'px';
+        tooltip.style.top = e.pageY + 10 + 'px';
+        tooltip.innerHTML = `<strong>${band.name}</strong><br>λ ≈ ${(band.wavelength * 1e9).toFixed(2)} nm`;
+        tooltip.style.display = 'block';
+      });
+
+      div.addEventListener('mouseout', () => {
+        tooltip.style.display = 'none';
+      });
+
+      div.addEventListener('click', () => {
+        alert(`Szczegółowy widok pasma: ${band.name}\n\nAnimacja zastosowania: ${band.info}`);
+      });
+
+      spectrum.appendChild(div);
+    });
+
+    function animate() {
+      ctx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+      if (activeBand) {
+        const amp = 40;
+        const freq = 1 / (activeBand.wavelength * 1e4);
+        const color = activeBand.color;
+        ctx.beginPath();
+        ctx.moveTo(0, 75);
+        for (let x = 0; x <= waveCanvas.width; x++) {
+          const y = 75 + amp * Math.sin((x + offset) * freq);
+          ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+      offset += 4;
+      requestAnimationFrame(animate);
+    }
+
+    document.getElementById('search').addEventListener('input', (e) => {
+      const value = parseFloat(e.target.value);
+      if (!isNaN(value) && value > 0) {
+        const wavelengthMeters = value * 1e-9;
+        const band = bands.find(b => Math.abs((b.wavelength * 1e9) - value) < 50);
+        if (band) {
+          activeBand = band;
+          const freq = (c / (band.wavelength)).toExponential(2);
+          const waveNm = (band.wavelength * 1e9).toFixed(2);
+          const temp = band.temp.toExponential(2);
+          details.innerHTML = `
+            <strong>${band.name}</strong><br>
+            Długość fali: ${waveNm} nm<br>
+            Częstotliwość: ${freq} Hz<br>
+            Temperatura maksimum promieniowania ciała doskonałego: ${temp} K<br>
+            ${band.info}
+          `;
+
+          document.querySelectorAll('.band').forEach(el => {
+            el.classList.remove('highlight');
+            if (el.textContent.includes(band.name.split(' ')[0])) {
+              el.classList.add('highlight');
+            }
+          });
+        }
+
+        const minWavelength = 1e-11;
+        const maxWavelength = 1;
+        const spectrumWidth = spectrum.clientWidth;
+
+        const logMin = Math.log10(minWavelength);
+        const logMax = Math.log10(maxWavelength);
+        const logValue = Math.log10(wavelengthMeters);
+
+        const ratio = (logValue - logMin) / (logMax - logMin);
+        const pixelPos = Math.min(Math.max(0, ratio * spectrumWidth), spectrumWidth);
+
+        scanner.style.left = `${pixelPos}px`;
+      }
+    });
+
+    animate();
+  </script>
+</body>
+</html>
