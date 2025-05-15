@@ -54,9 +54,6 @@ Program warsztatów obejmał:
 
 Warsztaty były możliwe dzięki wsparciu finansowemu Pana **Jakuba Stawarczyka**, absolwenta Wydziału. Zajęcia odbywały się na Wydziale Fizyki i Astronomii (pl. Maxa Borna 9, Wrocław) w środy, w godzinach **16:00–18:30**, w terminie od **19 lutego do 7 maja 2025 r.**
 
-
-Oto ulepszona i bardziej przejrzysta wersja notatki w stylu dokumentacji GitHub, skierowana do obecnych i przyszłych użytkowników repozytorium:
-
 ---
 
 ## Jak samodzielnie uruchomić pliki w Colab?
