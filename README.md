@@ -14,7 +14,7 @@ Poniżej znajdują się linki do stron projektów oraz notatników Colab i repoz
 **[Antoni – strona projektu o prawach Keplera](https://remigiuszdurka.github.io/fizykatomniefascynuje/fizyka-Antoni/)**  
   → [Colab](https://drive.google.com/drive/folders/1VQp6FaMhu_pVxw3nD4XQwcYCEWKDZBHx?usp=sharing)
 
-**[Antonina – strona projektu multiportalu o falach](https://remigiuszdurka.github.io/fizykatomniefascynuje/fizyka-Antonina/)**  
+**[Antonina – multiportal o falach](https://remigiuszdurka.github.io/fizykatomniefascynuje/fizyka-Antonina/index.html)**  
   → [Colab](https://drive.google.com/drive/folders/1pwzM2zdr3cLh_5CtNwn8G-rcSCTSiZbZ?usp=sharing)
 
 ---
